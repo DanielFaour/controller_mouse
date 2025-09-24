@@ -8,16 +8,13 @@ import time
 pygame.init()
 pygame.joystick.init()
 
-joysticks = []  # List of joysticks
+joysticks = []
 run = True
 
-pyautogui.FAILSAFE = False  # Disable fail-safe
+pyautogui.FAILSAFE = False  # Disable fail-safe (triggered when mouse it out of monitor bounds)
 
 a_click = False
 b_click = False
-
-# Track last time for delta time
-last_time = time.time()
 
 while run:
     for event in pygame.event.get():
@@ -27,14 +24,9 @@ while run:
             joysticks.append(joystick)
             print(f"Joystick {joystick.get_name()} connected.")
 
-    # calculate delta time (seconds since last loop)
-    now = time.time()
-    dt = now - last_time
-    last_time = now
-
     for joystick in joysticks:
         if not joystick.get_init():
-            continue  # Skip uninitialized joysticks
+            continue
 
         # Read axes left stick
         lx = joystick.get_axis(0)  # left/right
@@ -59,39 +51,40 @@ while run:
 
        # Click / Hold on A button
         if a == 1 and not a_click:
-            pyautogui.mouseDown()   # press and hold left mouse
+            pyautogui.mouseDown()
             a_click = True
         elif a == 0 and a_click:
-            pyautogui.mouseUp()     # release left mouse
+            pyautogui.mouseUp()
             a_click = False
 
         # Click / Hold on B button
         if b == 1 and not b_click:
-            pyautogui.rightClick()   # press and hold right mouse
+            pyautogui.rightClick()
             b_click = True
         elif b == 0 and b_click:
-            pyautogui.mouseUp()     # release right mouse
+            pyautogui.mouseUp()
             b_click = False
 
+        # hold and release ctrl with left bumper
         if rb == 1:
-            pyautogui.keyDown ('ctrl')  # hold ctrl
+            pyautogui.keyDown ('ctrl')
         else:
-            pyautogui.keyUp ('ctrl')    # release ctrl
+            pyautogui.keyUp ('ctrl')
 
+        # start to exit
         if start == 1:
             print("Application exiting...")
-            run = False  # Exit on start button
+            run = False 
 
-        # Move mouse with smoothing (scaled by delta time)
-        speed = 800  # pixels per second max speed
-        dx = lx * speed * dt
-        dy = ly * speed * dt
+        # Move mouse with left stick
+        speed = 100
+        dx = lx * speed
+        dy = ly * speed
         pyautogui.moveRel(dx, dy)
 
-        # Scroll using right stick vertical
-        scroll_speed = 800  # lines per second at full tilt
-        scroll = -ry * scroll_speed * dt
-        if int(scroll) != 0:
-            pyautogui.scroll(int(scroll))
+        # Scroll using right stick
+        scroll_speed = 100
+        scroll = -ry * scroll_speed
+        pyautogui.scroll(int(scroll))
 
-    time.sleep(0.001)  # shorter sleep for smoother loop
+    time.sleep(0.01)
